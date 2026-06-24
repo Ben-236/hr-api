@@ -1,39 +1,39 @@
 import { Router } from "express";
-import validateRequestParameters from "../../middleware/yupMiddleware/validateRequestParameters";
+import validateRequestParameters from "../middlewares/yupMiddleware/validate";
 import {
   createLeaveRequestSchema,
   rejectLeaveRequestSchema,
   leaveRequestParamsSchema,
   listLeaveRequestsQuerySchema,
-} from "../../middleware/yupMiddleware/leaveValidator";
+} from "../middlewares/yupMiddleware/leaveValidator";
 import {
   submitLeaveRequest,
   listLeaveRequests,
   approveLeaveRequest,
   rejectLeaveRequest,
-} from "./leave.controller";
+} from "../controllers/leaveController";
 
-const router = Router();
+const leaveRouter = Router();
 
-router.post("/", validateRequestParameters(createLeaveRequestSchema, "body"), submitLeaveRequest);
+leaveRouter.post("/", validateRequestParameters(createLeaveRequestSchema, "body"), submitLeaveRequest);
 
-router.get(
+leaveRouter.get(
   "/",
   validateRequestParameters(listLeaveRequestsQuerySchema, "query"),
   listLeaveRequests
 );
 
-router.post(
+leaveRouter.post(
   "/:id/approve",
   validateRequestParameters(leaveRequestParamsSchema, "params"),
   approveLeaveRequest
 );
 
-router.post(
+leaveRouter.post(
   "/:id/reject",
   validateRequestParameters(leaveRequestParamsSchema, "params"),
   validateRequestParameters(rejectLeaveRequestSchema, "body"),
   rejectLeaveRequest
 );
 
-export default router;
+export default leaveRouter;

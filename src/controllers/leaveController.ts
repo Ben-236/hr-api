@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
-import use from "../../utils/use";
-import codes from "../../utils/statusCode";
-import { leaveService } from "./leave.service";
+import use from "../utils/use";
+import codes from "../utils/statusCode";
+import { leaveService } from "../services/leaveService";
 import {
   CreateLeaveRequestType,
   RejectLeaveRequestType,
   LeaveRequestParamsType,
   ListLeaveRequestsType,
-} from "../../middleware/yupMiddleware/leaveValidator";
-import { LeaveStatus } from "../../../generated/prisma/client";
+} from "../middlewares/yupMiddleware/leaveValidator";
+import { LeaveStatus } from "../../generated/prisma/client";
 
 export const submitLeaveRequest = use(async (req: Request, res: Response) => {
   const input = req.validated?.body as unknown as CreateLeaveRequestType;
