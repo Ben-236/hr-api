@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch index.ts",
+    "dev": "tsx watch server.ts",
     "start": "node dist/index.js",
     "build": "tsc",
     "migrate:dev": "npx prisma migrate dev",

@@ -1,4 +1,4 @@
-import app from ".";
+import app from "./app";
 import config from "./src/config/env";
 
 const startApplication = async () => {

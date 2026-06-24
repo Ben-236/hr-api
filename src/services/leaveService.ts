@@ -4,6 +4,7 @@ import codes from "../utils/statusCode";
 import { LeaveType, LeaveStatus, Prisma } from "../../generated/prisma/client";
 import { parseDateOnly, startOfTodayUTC, inclusiveDayCount } from "../utils/dates";
 import { CreateLeaveRequestType } from "../middlewares/yupMiddleware/leaveValidator";
+import { AppError } from "../utils/error";
 
 const SICK_LONG_LEAVE_DAYS = 3;
 const SICK_LONG_LEAVE_MIN_REASON_LENGTH = 20;
@@ -17,28 +18,25 @@ export const leaveService = {
 
     // Rule: endDate must be on or after startDate
     if (endDate.getTime() < startDate.getTime()) {
-      throw new ErrorWithCode("endDate must be on or after startDate", codes.badRequest);
+      throw new AppError(codes.badRequest, "Leave end date must be on or after start date");
     }
 
     // Rule: leave cannot be submitted for dates entirely in the past
     const today = startOfTodayUTC();
     if (endDate.getTime() < today.getTime()) {
-      throw new ErrorWithCode(
-        "Leave cannot be submitted for dates entirely in the past",
-        codes.badRequest
-      );
+      throw new AppError(codes.badRequest, "Leave cannot be submitted for dates entirely in the past");
     }
 
     const employee = await prisma.employee.findUnique({ where: { id: employeeId } });
     if (!employee) {
-      throw new ErrorWithCode("Employee not found", codes.notFound);
+      throw new AppError(codes.notFound, "Employee not found");
     }
 
     const daysRequested = inclusiveDayCount(startDate, endDate);
 
     // Rule: reason optional for ANNUAL, required for SICK and UNPAID
     if ((leaveType === LeaveType.SICK || leaveType === LeaveType.UNPAID) && !reason?.trim()) {
-      throw new ErrorWithCode(`reason is required for ${leaveType} leave`, codes.badRequest);
+      throw new AppError(codes.badRequest, `reason is required for ${leaveType} leave`);
     }
 
     // Rule: SICK leave for more than 3 consecutive days requires reason
@@ -48,9 +46,9 @@ export const leaveService = {
       daysRequested > SICK_LONG_LEAVE_DAYS &&
       (reason?.trim().length ?? 0) < SICK_LONG_LEAVE_MIN_REASON_LENGTH
     ) {
-      throw new ErrorWithCode(
+      throw new AppError(
+        codes.badRequest, 
         `SICK leave longer than ${SICK_LONG_LEAVE_DAYS} days requires a reason of at least ${SICK_LONG_LEAVE_MIN_REASON_LENGTH} characters`,
-        codes.badRequest
       );
     }
 
@@ -64,18 +62,12 @@ export const leaveService = {
       },
     });
     if (overlapping) {
-      throw new ErrorWithCode(
-        "Employee already has a pending or approved leave request overlapping these dates",
-        codes.conflict
-      );
+      throw new AppError(codes.conflict, "Employee already has a pending or approved leave request overlapping these dates");
     }
 
     // Rule: ANNUAL leave must not exceed remaining balance
     if (leaveType === LeaveType.ANNUAL && daysRequested > employee.annualLeaveBalance) {
-      throw new ErrorWithCode(
-        `Requested ${daysRequested} day(s) exceeds remaining annual leave balance of ${employee.annualLeaveBalance}`,
-        422
-      );
+      throw new AppError(422, `Requested ${daysRequested} day(s) exceeds remaining annual leave balance of ${employee.annualLeaveBalance}`);
     }
 
     return prisma.leaveRequest.create({
@@ -115,7 +107,7 @@ export const leaveService = {
   async approve(requestId: string, approverId: string) {
     const existing = await prisma.leaveRequest.findUnique({ where: { id: requestId } });
     if (!existing) {
-      throw new ErrorWithCode("Leave request not found", codes.notFound);
+      throw new AppError(codes.notFound, "Leave request not found");
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -157,10 +149,7 @@ export const leaveService = {
         // (APPROVED) is already true. Balance was not deducted twice.
         return current;
       }
-      throw new ErrorWithCode(
-        `Leave request is not pending (current status: ${current.status})`,
-        codes.conflict
-      );
+      throw new AppError(codes.conflict, `Leave request is not pending (current status: ${current.status})`);
     }
 
     return result;
@@ -169,7 +158,7 @@ export const leaveService = {
   async reject(requestId: string, comment: string) {
     const existing = await prisma.leaveRequest.findUnique({ where: { id: requestId } });
     if (!existing) {
-      throw new ErrorWithCode("Leave request not found", codes.notFound);
+      throw new AppError(codes.notFound, "Leave request not found");
     }
 
     const result = await prisma.leaveRequest.updateMany({
@@ -182,10 +171,7 @@ export const leaveService = {
 
     if (result.count === 0) {
       const current = await prisma.leaveRequest.findUniqueOrThrow({ where: { id: requestId } });
-      throw new ErrorWithCode(
-        `Leave request is not pending (current status: ${current.status})`,
-        codes.conflict
-      );
+      throw new AppError(codes.conflict, `Leave request is not pending (current status: ${current.status})`);
     }
 
     return prisma.leaveRequest.findUniqueOrThrow({ where: { id: requestId } });
