@@ -8,6 +8,7 @@ const envSchema = Yup.object({
    PORT: Yup.number().default(3310),
 
    DATABASE_URL: Yup.string().required(),
+   NODE_ENV: Yup.string().oneOf(["development", "production"]).default("development"),
 
 
 }).noUnknown(true);
@@ -20,7 +21,7 @@ const envVars = envSchema.validateSync(process.env, {
 const config = {
 
    port: envVars.PORT,
-
+    nodeEnv: envVars.NODE_ENV,
    appName: envVars.APP_NAME,
    appEmail: envVars.APP_EMAIL,
 

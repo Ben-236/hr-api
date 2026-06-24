@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import use from "../../utils/use";
-import codes from "../../utils/statusCode";
-import ErrorWithCode from "../../utils/ErrorWithCode";
-import { prisma } from "../prisma";
+import use from "../utils/use";
+import codes from "../utils/statusCode";
+import ErrorWithCode from "../utils/ErrorWithCode";
+import { prisma } from "../db/prisma";
 import { EmployeeParamsType } from "../middlewares/yupMiddleware/employeeValidator";
 
 export const getLeaveBalance = use(async (req: Request, res: Response) => {

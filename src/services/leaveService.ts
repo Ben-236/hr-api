@@ -1,9 +1,9 @@
-import { prisma } from "../../db/prisma";
-import ErrorWithCode from "../../utils/ErrorWithCode";
-import codes from "../../utils/statusCode";
-import { LeaveType, LeaveStatus, Prisma } from "../../../generated/prisma/client";
-import { parseDateOnly, startOfTodayUTC, inclusiveDayCount } from "../../utils/dates";
-import { CreateLeaveRequestType } from "../../middleware/yupMiddleware/leaveValidator";
+import { prisma } from "../db/prisma";
+import ErrorWithCode from "../utils/ErrorWithCode";
+import codes from "../utils/statusCode";
+import { LeaveType, LeaveStatus, Prisma } from "../../generated/prisma/client";
+import { parseDateOnly, startOfTodayUTC, inclusiveDayCount } from "../utils/dates";
+import { CreateLeaveRequestType } from "../middlewares/yupMiddleware/leaveValidator";
 
 const SICK_LONG_LEAVE_DAYS = 3;
 const SICK_LONG_LEAVE_MIN_REASON_LENGTH = 20;

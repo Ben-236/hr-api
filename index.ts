@@ -1,5 +1,4 @@
-// import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "./generated/prisma/client";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -10,7 +9,8 @@ import morgan from "morgan";
 import config from "./src/config/env";
 import codes from "./src/utils/statusCode";
 import { AppError } from "./src/utils/error";
-import employeeRouter from "./src/routes";
+import employeeRouter from "./src/routes/employeeRouter";
+import leaveRouter from "./src/routes/leaveRouter";
 
 dotenv.config();
 
@@ -39,9 +39,8 @@ app.get("/", (_req: Request, res: Response, _next: NextFunction) => {
 });
 
 //API routes
-
-
  app.use("/api/v1/employee", employeeRouter);
+ app.use("/api/v1/leave", leaveRouter);
 
 
 app.use((_req: Request, res: Response, _next: NextFunction) => {
