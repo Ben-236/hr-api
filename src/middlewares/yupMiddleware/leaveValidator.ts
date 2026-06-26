@@ -11,10 +11,6 @@ export const createLeaveRequestSchema = Yup.object({
     .required("leaveType is required"),
   startDate: dateOnly,
   endDate: dateOnly,
-  // Required-by-type, and SICK-duration-length rules depend on computed
-  // duration, not just leaveType, so they're enforced in leave.service.ts
-  // rather than via Yup .when() (which gets unreadable for cross-field,
-  // computed-value rules).
   reason: Yup.string().trim().max(1000, "reason must be 1000 characters or fewer"),
 });
 
@@ -29,6 +25,8 @@ export const leaveRequestParamsSchema = Yup.object({
 export const listLeaveRequestsQuerySchema = Yup.object({
   status: Yup.string().oneOf(["PENDING", "APPROVED", "REJECTED"]).optional(),
   employeeId: Yup.string().trim().optional(),
+  page: Yup.number().integer().min(1).default(1),
+  perPage: Yup.number().integer().min(1).max(100).default(15),
 });
 
 export type CreateLeaveRequestType = Yup.InferType<typeof createLeaveRequestSchema>;

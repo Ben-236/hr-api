@@ -1,6 +1,6 @@
 AI Usage Reflection
 1. Which AI tools did you use, if any?
-Claude (Anthropic), used as a development assistant throughout the assessment.
+Claude (Anthropic), used as a development assistant.
 
 2. How did you use them?
 I used AI primarily as a pair-programming and research assistant.
@@ -10,14 +10,14 @@ Typical uses included:
 * Assisting with debugging environment and tooling issues
 * Generating alternative solutions when evaluating design decisions
 * Reviewing test scenarios and edge cases
-AI was also helpful in diagnosing several setup-related issues, including Prisma 7 configuration changes, test runner compatibility problems, route configuration mismatches, and import-path errors.
+
+AI was also helpful in diagnosing several setup-related issues, including Prisma 7 configuration changes, and test runner compatibility problems.
 Final implementation decisions remained my responsibility, and all generated suggestions were reviewed before being incorporated.
 
 3. Which generated code did you modify and why?
 Several AI-generated suggestions required modification before they fit the application's architecture and requirements.
 Examples include:
 * Refactoring error handling after identifying a mismatch between generated exceptions and my application's middleware conventions.
-* Correcting generated import paths and project structure assumptions that did not match the actual repository layout.
 * Reworking the test setup after deciding to migrate from Jest to Vitest due to compatibility issues with Prisma's generated client.
 These changes were necessary to align generated code with the project's actual structure, conventions, and runtime behavior.
 
@@ -49,7 +49,8 @@ Particular attention was given to:
 * Integration test coverage for critical workflows
 
 7. What part of the work would you be most comfortable defending in a technical interview?
-The concurrency fix described in DEBUGGING.md and its accompanying test coverage.
+The concurrency fix described in DEBUGGING.md.
+
 I understand the race condition in the original implementation, why a simple transaction alone would not fully solve the issue, and why the conditional status transition inside the transaction provides the necessary concurrency protection.
 I would be comfortable discussing:
 * Transaction isolation and race conditions

@@ -5,6 +5,7 @@ import { LeaveType, LeaveStatus, Prisma } from "../../generated/prisma/client";
 import { parseDateOnly, startOfTodayUTC, inclusiveDayCount } from "../utils/dates";
 import { CreateLeaveRequestType } from "../middlewares/yupMiddleware/leaveValidator";
 import { AppError } from "../utils/error";
+import { generatePaginationQuery, generatePaginationMeta } from "../utils/function";
 
 const SICK_LONG_LEAVE_DAYS = 3;
 const SICK_LONG_LEAVE_MIN_REASON_LENGTH = 20;
@@ -83,15 +84,27 @@ export const leaveService = {
     });
   },
 
-  async list(filters: { status?: LeaveStatus; employeeId?: string }) {
+ async list(filters: { status?: LeaveStatus; employeeId?: string; page?: number; perPage?: number }) {
     const where: Prisma.LeaveRequestWhereInput = {};
     if (filters.status) where.status = filters.status;
     if (filters.employeeId) where.employeeId = filters.employeeId;
-
-    return prisma.leaveRequest.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-    });
+ 
+    const page = filters.page ?? 1;
+    const perPage = filters.perPage ?? 15;
+ 
+    const [leaveRequests, total] = await Promise.all([
+      prisma.leaveRequest.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        ...generatePaginationQuery({ page, perPage }),
+      }),
+      prisma.leaveRequest.count({ where }),
+    ]);
+ 
+    return {
+      leaveRequests,
+      ...generatePaginationMeta(page, perPage, total),
+    };
   },
 
   /**

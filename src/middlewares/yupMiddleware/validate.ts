@@ -1,5 +1,6 @@
 import * as Yup from "yup";
 import { NextFunction, Request, Response } from "express";
+import codes from "../../utils/statusCode";
 
 type ReqParameter = "body" | "params" | "query";
 
@@ -19,7 +20,10 @@ const validateRequestParameters =
       return next();
     } catch (e: any) {
       console.error(e);
-      return res.status(400).json({ error: e.message });
+      return res.status(codes.badRequest).json({
+        message: e.message,
+        errors: e.errors,
+      });
     }
   };
 

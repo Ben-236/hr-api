@@ -1,10 +1,11 @@
 Design Notes
 These notes capture the architectural decisions, tradeoffs, and engineering judgment behind the Leave Request & Approval module.
-The goal is not to design for hypothetical internet-scale traffic, but to make pragmatic decisions that keep the system reliable, maintainable, and easy to evolve as usage grows.
+The goal is not to design for hypothetical internet-scale traffic, but to make decisions that keep the system reliable, maintainable, and easy to evolve as usage grows.
 
 Section 3: System Design Questions
 1. Scaling Leave Submissions
 At the scale described (500 companies with predictable end-of-week spikes), the primary concern is handling short bursts of write activity rather than sustained high throughput.
+
 Recommended Approach
 * Horizontally scale the API layer behind a load balancer. The application is stateless, so additional instances can be added without coordination concerns.
 * Use connection pooling. PostgreSQL has a finite connection limit, and burst traffic can exhaust available connections if each API instance maintains its own large pool. A connection pooler such as PgBouncer helps smooth connection usage.
@@ -37,13 +38,16 @@ When a leave request is approved or rejected:
 2. Insert an audit log entry.
 3. Commit both changes in the same transaction.
 This guarantees that approvals and audit records cannot become inconsistent.
+
 For long-term analytics and reporting:
 * Replicate audit data asynchronously using Change Data Capture (CDC)
 * Stream audit events into a reporting or compliance system
 * Avoid synchronous calls to external audit services from the request path
+
 Immutability
 Audit records should be append-only.
 The application database role should not have permission to update or delete audit records, and database-level protections should prevent modification after insertion.
+
 Data Captured
 Each audit record should contain:
 * Actor (employee or approver)
@@ -98,6 +102,7 @@ Changing an approved request back to PENDING introduces several problems:
 * Downstream systems may become inconsistent.
 * The request enters a state it was never designed to re-enter.
 The result is a data integrity problem rather than a simplified solution.
+
 Recommended Approach
 Introduce a dedicated cancellation workflow:
 APPROVED → CANCELLED
@@ -106,6 +111,7 @@ The cancellation endpoint should:
 2. Record an audit entry.
 3. Store who performed the cancellation.
 4. Preserve approval history.
+
 What I Would Ship
 A minimal but correct cancellation endpoint:
 POST /leave-requests/:id/cancel

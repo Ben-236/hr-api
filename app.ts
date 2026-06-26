@@ -39,10 +39,6 @@ app.get("/", (_req: Request, res: Response, _next: NextFunction) => {
 });
 
 //API routes
-//  app.use("/api/v1/employee", employeeRouter);
-//  app.use("/api/v1/leave", leaveRouter);
-
-
 app.use("/employees", employeeRouter);
 app.use("/leave-requests", leaveRouter);
 

@@ -7,6 +7,7 @@ The approval flow performs several dependent operations as separate database cal
 4. Validate that sufficient balance exists
 5. Update the employee's balance
 6. Update the leave request status
+
 Because these operations are executed independently and outside a database transaction, another request can modify the same data between steps. The validation checks are only true at the moment the data is read and are not revalidated when the updates occur.
 As a result, the approval process is vulnerable to race conditions when multiple requests attempt to approve the same leave request concurrently.
 
@@ -100,19 +101,8 @@ Additional Improvements
 Approval endpoints are naturally retry-prone because network timeouts can occur even when the server successfully processed the request.
 A production implementation should support an Idempotency-Key header. The key would be stored with a unique constraint and associated with the original response. Any retry using the same key would return the previous result instead of executing the business logic again.
 This prevents duplicate processing even before the request reaches the approval workflow.
-2. Outbox Pattern
-The current implementation publishes an event after the transaction commits:
-await this.eventBus.publish("leave.approved", event);
-This creates a reliability gap:
-* If the transaction succeeds but the process crashes before publishing, the event is lost.
-* If publishing is retried incorrectly, the event may be delivered multiple times.
-A production solution would use the Outbox Pattern:
-1. Write the approval event to an outbox table inside the same transaction.
-2. Commit the transaction.
-3. A background worker reads unpublished outbox records and publishes them.
-4. Successfully published records are marked as processed.
-This guarantees reliable event delivery while keeping the approval transaction consistent.
-3. Concurrency Tests
+
+2. Concurrency Tests
 Add automated tests that execute multiple approval requests simultaneously against the same leave request:
 await Promise.all([
   approveLeaveRequest(id, approverA),
@@ -123,7 +113,8 @@ The test should verify:
 * The request ends in the APPROVED state
 * The leave balance is deducted exactly once
 This serves as a regression test for the original bug.
-4. Database Constraints and Monitoring
+
+3. Database Constraints and Monitoring
 Application logic should not be the only protection mechanism.
 A database-level constraint provides an additional safety net:
 CHECK (annual_leave_balance >= 0)

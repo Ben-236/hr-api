@@ -31,8 +31,8 @@ npm install
 Copy .env.example to .env and update the PostgreSQL connection details:
 cp .env.example .env
 Create the application databases:
-createdb hr_api
-createdb hr_api_test
+create db hr_api
+create db hr_api_test
 
 3. Generate Prisma Client and Run Migrations
 npx prisma generate
@@ -118,9 +118,7 @@ Further discussion is included in DESIGN_NOTES.md.
 Known Limitations
 * Authentication and authorization are not implemented.
 * Tenant isolation is not enforced.
-* Concurrent leave submissions may bypass overlap validation under rare race conditions.
-* Pagination is not implemented for GET /leave-requests.
-* Unknown errors currently return HTTP 400 responses. In production, unexpected failures should return a generic HTTP 500 response while logging internal details separately.
+
 
 Why Express Instead of NestJS?
 The assessment allows either framework.
